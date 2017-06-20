@@ -4,11 +4,13 @@
  * and open the template in the editor.
  */
 
+import fu.util.ConcaveHullGenerator;
 import nav.NavData;
+import pp.dorenda.client2.additional.UniversalPainterWriter;
 
-import java.util.PriorityQueue;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.PriorityQueue;
 
 /**
  *
@@ -19,6 +21,7 @@ public class OrtAnwDienst {
     private static nav.NavData navData;
     private static List<Crossing> closedList;
     private static PriorityQueue<Crossing> openList;
+    private static ArrayList<double[]> positions;
     private static int startLat;
     private static int startLon;
     private static int totalSeconds;
@@ -31,8 +34,7 @@ public class OrtAnwDienst {
         startLat = 49605031;
         startLon = 10994610;
         // totalSeconds = 1 * 60;
-        totalSeconds = 300;
-
+        totalSeconds = 10;
 
         navData = new NavData("roth\\Roth_LBS\\CAR_CACHE_mittelfranken_noCC.CAC", true);
 
@@ -51,7 +53,23 @@ public class OrtAnwDienst {
                 expandCrossing(activeCrossing);
             }
         }
+        positions = new ArrayList<double[]>();
+        for (Crossing cross:closedList) {
+            positions.add(convertToDoubleArray(navData.getCrossingLatE6(cross.id),navData.getCrossingLongE6(cross.id)));
+        }
+        UniversalPainterWriter upw=new UniversalPainterWriter("result.txt");
+        upw.line(ConcaveHullGenerator.concaveHull(positions,0.2),0,255,0,200,4,3,null,null,null);
+        upw.close();
 
+    }
+
+    private static double[] convertToDoubleArray(int lat,int lon){
+        double[] array = new double[2];
+        array[0]=lat;
+        array[0]= array[0]/1000000;
+        array[1]=lon;
+        array[1]= array[1]/1000000;
+        return array;
     }
 
     private static void initAStarAlgo(){
