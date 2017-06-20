@@ -6,6 +6,7 @@ public class Crossing {
     private static nav.NavData navData;
 
     private static int counter;
+    private static Boolean test;
 
     private int[] outgoingLinksIDs;
     private int[] neighboursIDs;
@@ -16,6 +17,7 @@ public class Crossing {
 
     public Crossing(int id, nav.NavData navData){
 
+        test = true;
         counter++;
         System.out.println("Crossings: " + counter);
 
@@ -32,12 +34,12 @@ public class Crossing {
         }
     }
 
-    public Crossing(int id, Crossing previousCrossing, nav.NavData navData){
+    public Crossing(int id, Crossing previousCrossing){
 
         counter++;
         System.out.println("Crossings: " + counter);
 
-        this.navData = navData;
+//        this.navData = navData;
         this.previousCrossing = previousCrossing;
         this.id = id;
         this.outgoingLinksIDs = navData.getLinksForCrossing(id);
@@ -67,6 +69,7 @@ public class Crossing {
     private void setGValue(){
         int linkIDPreviousToThis = getLinkIDPreviousToThis(previousCrossing.id);
         this.gVal = previousCrossing.gVal + getLinkIDDriveTime(linkIDPreviousToThis);
+        System.out.println("gVal: " + this.gVal);
     }
 
     private int getLinkIDPreviousToThis(int previousID){
@@ -102,7 +105,18 @@ public class Crossing {
 
         double linkMaxSpeedMS = linkMaxSpeedKMH / 3.6;
 
-        return (int) Math.round(linkLength / linkMaxSpeedMS);
+//        if (test){
+//            System.out.println("Test:");
+//            System.out.println((double) navData.getCrossingLatE6(navData.getCrossingIDFrom(linkID)) / 1000000 + " " + (double) navData.getCrossingLongE6(navData.getCrossingIDFrom(linkID)) / 1000000);
+//            System.out.println((double) navData.getCrossingLatE6(navData.getCrossingIDTo(linkID)) / 1000000 + " " + (double) navData.getCrossingLongE6(navData.getCrossingIDTo(linkID)) / 1000000);
+//            System.out.println(linkLength);
+//            System.out.println(linkMaxSpeedKMH + " " + linkMaxSpeedMS);
+//            System.out.println(linkLength / linkMaxSpeedMS);
+//            test = false;
+//        }
+
+//        return (int) Math.round(linkLength / linkMaxSpeedMS);
+        return linkLength / linkMaxSpeedMS;
     }
 
     public int[] getNeighboursIDs(){
@@ -114,5 +128,9 @@ public class Crossing {
             return -1;
         else
             return previousCrossing.id;
+    }
+
+    public void setPreviousCrossing(Crossing previousCrossing) {
+        this.previousCrossing = previousCrossing;
     }
 }

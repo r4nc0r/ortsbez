@@ -8,9 +8,9 @@ import fu.util.ConcaveHullGenerator;
 import nav.NavData;
 import pp.dorenda.client2.additional.UniversalPainterWriter;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.PriorityQueue;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+
 
 /**
  *
@@ -31,17 +31,19 @@ public class OrtAnwDienst {
      */
     public static void main(String[] args) throws Exception {
 
-        startLat = 49605031;
-        startLon = 10994610;
+        long startTime = System.nanoTime();
+
+        startLat = 49465646;
+        startLon = 11154443;
         // totalSeconds = 1 * 60;
-        totalSeconds = 10;
+        totalSeconds = 3 * 60;
 
         navData = new NavData("roth\\Roth_LBS\\CAR_CACHE_mittelfranken_noCC.CAC", true);
 
-        initAStarAlgo();
-
         boolean goOn = true;
         Crossing activeCrossing;
+
+        initAStarAlgo();
 
         while(goOn){
             System.out.println("Open List Größe: " + openList.size());
@@ -53,14 +55,35 @@ public class OrtAnwDienst {
                 expandCrossing(activeCrossing);
             }
         }
+
+        printAStarDuration(startTime);
+
+//        for (Crossing cross:closedList) {
+//            System.out.println((double) navData.getCrossingLatE6(cross.id) / 1000000 + " " + (double) navData.getCrossingLongE6(cross.id) / 1000000);
+//        }
+
         positions = new ArrayList<double[]>();
         for (Crossing cross:closedList) {
             positions.add(convertToDoubleArray(navData.getCrossingLatE6(cross.id),navData.getCrossingLongE6(cross.id)));
         }
-        UniversalPainterWriter upw=new UniversalPainterWriter("result.txt");
+        UniversalPainterWriter upw = new UniversalPainterWriter("result.txt");
         upw.line(ConcaveHullGenerator.concaveHull(positions,0.2),0,255,0,200,4,3,null,null,null);
         upw.close();
 
+    }
+
+    private static void printAStarDuration(long startTime) {
+        long diffNano = System.nanoTime() - startTime;
+        long diffMS = TimeUnit.MILLISECONDS.convert(diffNano, TimeUnit.NANOSECONDS);
+        long diffSec = TimeUnit.SECONDS.convert(diffNano, TimeUnit.NANOSECONDS);
+        long diffMin = TimeUnit.MINUTES.convert(diffNano, TimeUnit.NANOSECONDS);
+
+        System.out.println("Total execution time: " + diffMS + " ms");
+        System.out.println("Total execution time: "
+                + diffMin + " min, "
+                + (diffSec - TimeUnit.SECONDS.convert(diffMin, TimeUnit.MINUTES)) + " sec, "
+                + (diffMS - (TimeUnit.MILLISECONDS.convert(diffMin, TimeUnit.MINUTES) + TimeUnit.MILLISECONDS.convert(diffSec, TimeUnit.SECONDS))) + " ms"
+        );
     }
 
     private static double[] convertToDoubleArray(int lat,int lon){
@@ -73,16 +96,15 @@ public class OrtAnwDienst {
     }
 
     private static void initAStarAlgo(){
-        myComparator OpenListComp = new myComparator();
-        openList = new PriorityQueue(500, OpenListComp);
+        OpenListComp openListComp = new OpenListComp();
+        ClosedListComp closedListComp = new ClosedListComp();
 
+        openList = new PriorityQueue(500, openListComp);
         closedList = new ArrayList<Crossing>();
 
         int startCrossID = navData.getNearestCrossing(startLat, startLon);
         Crossing startCrossing = new Crossing(startCrossID, navData);
-        // System.out.println("size1: " + openList.size());
         openList.add(startCrossing);
-        // System.out.println("size2: " + openList.size());
     }
 
     private static void expandCrossing(Crossing activeCrossing){
@@ -98,6 +120,7 @@ public class OrtAnwDienst {
                 if (neighbour != null){
                     // this neighbour crossing is already in the openList
                     if (neighbour.updateGValue(activeCrossing)){
+                        neighbour.setPreviousCrossing(activeCrossing);
                         openList.remove(neighbour);
                         openList.add(neighbour);
                     }
@@ -107,7 +130,7 @@ public class OrtAnwDienst {
 
                     if (neighbour == null){
                         // this neighbour crossing is not found yet
-                        Crossing newCrossing = new Crossing(neighbourID, activeCrossing, navData);
+                        Crossing newCrossing = new Crossing(neighbourID, activeCrossing);
                         openList.add(newCrossing);
 
                     }
@@ -128,7 +151,6 @@ public class OrtAnwDienst {
     }
 
     private static Crossing getCrossingFromClosedList(int crossingID){
-        // closedList.add();
         for (Crossing tempCrossing : closedList) {
             if (tempCrossing.id == crossingID)
                 return tempCrossing;

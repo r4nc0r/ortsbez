@@ -4,15 +4,14 @@
  * and open the template in the editor.
  */
 
+import java.util.Comparator;
 /**
  *
  * @author Michael
  */
-public class Node {
+public class ClosedListComp implements Comparator<Crossing> {
     
-    public int dist;
-    
-    public Node(int dist){
-        this.dist = dist;
+    public int compare(Crossing cross1, Crossing cross2){
+        return Double.compare(cross1.id, cross2.id);
     }
 }
