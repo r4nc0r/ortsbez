@@ -112,20 +112,36 @@ public class Crossing {
 
         int linkLength = navData.getLengthMeters(linkID);
         int linkMaxSpeedKMH = navData.getMaxSpeedKMperHours(linkID);
+        int lsi;
 
-        if (linkMaxSpeedKMH == 0)
-            linkMaxSpeedKMH = 30;
-
-        if (linkMaxSpeedKMH>120)
-        {
-            System.out.print("error");
+        if (linkMaxSpeedKMH == 0) {
+            lsi =navData.getLSIclass(linkID);
+            if(lsi >=34100000 && lsi<=34120000){
+                linkMaxSpeedKMH=120;
+            }
+            else if(lsi >=34130000 && lsi<=34134000){
+                linkMaxSpeedKMH=100;
+            }
+            else if(lsi >=34140000 && lsi<=34142000){
+                linkMaxSpeedKMH=50;
+            }
+            else if(lsi >=34143000 && lsi<=34143200){
+                linkMaxSpeedKMH=3;
+            }
+            else if(lsi >=34150000 && lsi<=34160000){
+                linkMaxSpeedKMH=5;
+            }
+            else if(lsi >=34170000 && lsi<=34176000){
+                linkMaxSpeedKMH=50;
+            }
+            else {
+                return 0;
+            }
         }
+
 
         double linkMaxSpeedMS = linkMaxSpeedKMH / 3.6;
-        if (linkMaxSpeedMS>33.5)
-        {
-            System.out.print("error");
-        }
+
 //        if (test){
 //            System.out.println("Test:");
 //            System.out.println((double) navData.getCrossingLatE6(navData.getCrossingIDFrom(linkID)) / 1000000 + " " + (double) navData.getCrossingLongE6(navData.getCrossingIDFrom(linkID)) / 1000000);

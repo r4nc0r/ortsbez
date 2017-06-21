@@ -67,8 +67,10 @@ public class OrtAnwDienst {
             positions.add(convertToDoubleArray(navData.getCrossingLatE6(cross.id),navData.getCrossingLongE6(cross.id)));
         }
         UniversalPainterWriter upw = new UniversalPainterWriter("result.txt");
-        positions = ConcaveHullGenerator.concaveHull(positions,0.01d);
-        upw.line(positions,0,255,0,200,4,3,null,null,null);
+        positions = ConcaveHullGenerator.concaveHull(positions,0.005d);
+        upw.polygon(positions,102,102,102,200);
+        double[] startpos = convertToDoubleArray(startLat,startLon);
+        upw.flag(startpos[0],startpos[1],0,0,255,200,"Start");
         upw.close();
 
     }
