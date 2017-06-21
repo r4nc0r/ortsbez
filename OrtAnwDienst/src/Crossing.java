@@ -34,7 +34,7 @@ public class Crossing {
         }
     }
 
-    public Crossing(int id, Crossing previousCrossing){
+    public Crossing(int id, Crossing previousCrossing,int time){
 
         counter++;
         System.out.println("Crossings: " + counter);
@@ -52,24 +52,37 @@ public class Crossing {
         // System.out.println(outgoingLinksIDs);
         // System.out.println(neighboursIDs);
 
-        setGValue();
+        setGValue(time);
     }
 
     public boolean updateGValue(Crossing newPreviousCrossing){
         int linkIDPreviousToThis = getLinkIDPreviousToThis(newPreviousCrossing.id);
-        double newGVal = newPreviousCrossing.gVal + getLinkIDDriveTime(linkIDPreviousToThis);
-
-        if (newGVal < this.gVal){
-            this.gVal = newGVal;
-            return true;
+        if (linkIDPreviousToThis ==-1)
+        {
+            return false;
         }
-        return false;
+        else {
+            double newGVal = newPreviousCrossing.gVal + getLinkIDDriveTime(linkIDPreviousToThis);
+
+            if (newGVal < this.gVal) {
+                this.gVal = newGVal;
+                return true;
+            }
+            return false;
+        }
     }
 
-    private void setGValue(){
+    private void setGValue(int time){
         int linkIDPreviousToThis = getLinkIDPreviousToThis(previousCrossing.id);
-        this.gVal = previousCrossing.gVal + getLinkIDDriveTime(linkIDPreviousToThis);
-        System.out.println("gVal: " + this.gVal);
+        if (linkIDPreviousToThis ==-1)
+        {
+            this.gVal = time*2;
+        }
+        else{
+            this.gVal = previousCrossing.gVal + getLinkIDDriveTime(linkIDPreviousToThis);
+            System.out.println("gVal: " + this.gVal);
+        }
+
     }
 
     private int getLinkIDPreviousToThis(int previousID){
@@ -101,10 +114,18 @@ public class Crossing {
         int linkMaxSpeedKMH = navData.getMaxSpeedKMperHours(linkID);
 
         if (linkMaxSpeedKMH == 0)
-            linkMaxSpeedKMH = 130;
+            linkMaxSpeedKMH = 30;
+
+        if (linkMaxSpeedKMH>120)
+        {
+            System.out.print("error");
+        }
 
         double linkMaxSpeedMS = linkMaxSpeedKMH / 3.6;
-
+        if (linkMaxSpeedMS>33.5)
+        {
+            System.out.print("error");
+        }
 //        if (test){
 //            System.out.println("Test:");
 //            System.out.println((double) navData.getCrossingLatE6(navData.getCrossingIDFrom(linkID)) / 1000000 + " " + (double) navData.getCrossingLongE6(navData.getCrossingIDFrom(linkID)) / 1000000);

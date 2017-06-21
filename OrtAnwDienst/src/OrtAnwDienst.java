@@ -36,7 +36,7 @@ public class OrtAnwDienst {
         startLat = 49465646;
         startLon = 11154443;
         // totalSeconds = 1 * 60;
-        totalSeconds = 3 * 60;
+        totalSeconds = 15*60;
 
         navData = new NavData("roth\\Roth_LBS\\CAR_CACHE_mittelfranken_noCC.CAC", true);
 
@@ -67,7 +67,8 @@ public class OrtAnwDienst {
             positions.add(convertToDoubleArray(navData.getCrossingLatE6(cross.id),navData.getCrossingLongE6(cross.id)));
         }
         UniversalPainterWriter upw = new UniversalPainterWriter("result.txt");
-        upw.line(ConcaveHullGenerator.concaveHull(positions,0.2),0,255,0,200,4,3,null,null,null);
+        positions = ConcaveHullGenerator.concaveHull(positions,0.01d);
+        upw.line(positions,0,255,0,200,4,3,null,null,null);
         upw.close();
 
     }
@@ -130,7 +131,7 @@ public class OrtAnwDienst {
 
                     if (neighbour == null){
                         // this neighbour crossing is not found yet
-                        Crossing newCrossing = new Crossing(neighbourID, activeCrossing);
+                        Crossing newCrossing = new Crossing(neighbourID, activeCrossing, totalSeconds);
                         openList.add(newCrossing);
 
                     }
@@ -138,8 +139,10 @@ public class OrtAnwDienst {
             }
         }
 
-        openList.remove(activeCrossing);
-        closedList.add(activeCrossing);
+
+            closedList.add(activeCrossing);
+
+
     }
 
     private static Crossing getCrossingFromOpenList(int crossingID){
