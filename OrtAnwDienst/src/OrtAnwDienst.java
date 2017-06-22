@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 import fu.util.ConcaveHullGenerator;
 import nav.NavData;
 import pp.dorenda.client2.additional.UniversalPainterWriter;
@@ -12,16 +6,18 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 
-/**
- *
- * @author Michael
- */
 public class OrtAnwDienst {
 
     private static nav.NavData navData;
-    private static List<Crossing> closedList;
+
+    private static Map<Integer, Crossing> closedList;
+
     private static PriorityQueue<Crossing> openList;
+
+    private static Map<Integer, Crossing> openListMap;
+
     private static ArrayList<double[]> positions;
+
     private static int startLat;
     private static int startLon;
     private static int totalSeconds;
@@ -35,55 +31,69 @@ public class OrtAnwDienst {
 
         startLat = 49465646;
         startLon = 11154443;
-        // totalSeconds = 1 * 60;
-        totalSeconds = 15*60;
+        totalSeconds = 60*60;
 
-        navData = new NavData("roth\\Roth_LBS\\CAR_CACHE_mittelfranken_noCC.CAC", true);
+        navData = new NavData("roth\\Roth_LBS\\CAR_CACHE_de_noCC.CAC", true);
 
-        boolean goOn = true;
+        long startTimeAfterTables = System.nanoTime();
+
+        UniversalPainterWriter upw = new UniversalPainterWriter("result.txt");
+
+        long startTimeAfterUPW = System.nanoTime();
+
+        boolean isAStarTerminated = false;
         Crossing activeCrossing;
 
         initAStarAlgo();
 
-        while(goOn){
+        while(!isAStarTerminated){
             System.out.println("Open List Größe: " + openList.size());
             if (openList.peek().gVal > totalSeconds){
-                goOn = false;
+                isAStarTerminated = true;
             }
             else{
                 activeCrossing = openList.poll();
+                openListMap.remove(activeCrossing.id);
                 expandCrossing(activeCrossing);
             }
         }
 
-        printAStarDuration(startTime);
+        long durationCACLoadTime = startTimeAfterTables - startTime;
+        long durationAStar = System.nanoTime() - startTimeAfterUPW;
+        System.out.println("\nCAC Loading Time:");
+        printDurationNano(durationCACLoadTime);
+        System.out.println("\nA-Star Duration:");
+        printDurationNano(durationAStar);
 
-//        for (Crossing cross:closedList) {
-//            System.out.println((double) navData.getCrossingLatE6(cross.id) / 1000000 + " " + (double) navData.getCrossingLongE6(cross.id) / 1000000);
-//        }
+        startTime = System.nanoTime();
 
+        generateConcaveHull(upw);
+
+        System.out.println("\nconcaveHull Duration:");
+        printDurationNano(System.nanoTime() - startTime);
+    }
+
+    private static void generateConcaveHull(UniversalPainterWriter upw) {
         positions = new ArrayList<double[]>();
-        for (Crossing cross:closedList) {
+
+        for (Crossing cross: closedList.values()) {
             positions.add(convertToDoubleArray(navData.getCrossingLatE6(cross.id),navData.getCrossingLongE6(cross.id)));
         }
-        UniversalPainterWriter upw = new UniversalPainterWriter("result.txt");
-        positions = ConcaveHullGenerator.concaveHull(positions,0.005d);
+
+        positions = ConcaveHullGenerator.concaveHull(positions,0.04d);
         upw.polygon(positions,102,102,102,200);
         double[] startpos = convertToDoubleArray(startLat,startLon);
         upw.flag(startpos[0],startpos[1],0,0,255,200,"Start");
         upw.close();
-
     }
 
-    private static void printAStarDuration(long startTime) {
-        long diffNano = System.nanoTime() - startTime;
-        long diffMS = TimeUnit.MILLISECONDS.convert(diffNano, TimeUnit.NANOSECONDS);
-        long diffSec = TimeUnit.SECONDS.convert(diffNano, TimeUnit.NANOSECONDS);
-        long diffMin = TimeUnit.MINUTES.convert(diffNano, TimeUnit.NANOSECONDS);
+    private static void printDurationNano(long duration) {
+        long diffMS = TimeUnit.MILLISECONDS.convert(duration, TimeUnit.NANOSECONDS);
+        long diffSec = TimeUnit.SECONDS.convert(duration, TimeUnit.NANOSECONDS);
+        long diffMin = TimeUnit.MINUTES.convert(duration, TimeUnit.NANOSECONDS);
 
-        System.out.println("Total execution time: " + diffMS + " ms");
-        System.out.println("Total execution time: "
-                + diffMin + " min, "
+        System.out.println(diffMS + " ms");
+        System.out.println(diffMin + " min, "
                 + (diffSec - TimeUnit.SECONDS.convert(diffMin, TimeUnit.MINUTES)) + " sec, "
                 + (diffMS - (TimeUnit.MILLISECONDS.convert(diffMin, TimeUnit.MINUTES) + TimeUnit.MILLISECONDS.convert(diffSec, TimeUnit.SECONDS))) + " ms"
         );
@@ -100,14 +110,16 @@ public class OrtAnwDienst {
 
     private static void initAStarAlgo(){
         OpenListComp openListComp = new OpenListComp();
-        ClosedListComp closedListComp = new ClosedListComp();
 
-        openList = new PriorityQueue(500, openListComp);
-        closedList = new ArrayList<Crossing>();
+        openList = new PriorityQueue(2000, openListComp);
+        openListMap = new HashMap<Integer, Crossing>(2000);
+
+        closedList = new HashMap<Integer, Crossing>(300000);
 
         int startCrossID = navData.getNearestCrossing(startLat, startLon);
-        Crossing startCrossing = new Crossing(startCrossID, navData);
+        Crossing startCrossing = new Crossing(startCrossID, navData, totalSeconds);
         openList.add(startCrossing);
+        openListMap.put(startCrossing.id, startCrossing);
     }
 
     private static void expandCrossing(Crossing activeCrossing){
@@ -133,102 +145,26 @@ public class OrtAnwDienst {
 
                     if (neighbour == null){
                         // this neighbour crossing is not found yet
-                        Crossing newCrossing = new Crossing(neighbourID, activeCrossing, totalSeconds);
+                        Crossing newCrossing = new Crossing(neighbourID, activeCrossing);
                         openList.add(newCrossing);
+                        openListMap.put(newCrossing.id, newCrossing);
 
                     }
                 }
             }
         }
 
-
-            closedList.add(activeCrossing);
+        closedList.put(activeCrossing.id, activeCrossing);
 
 
     }
 
     private static Crossing getCrossingFromOpenList(int crossingID){
-        for (Crossing tempCrossing : openList) {
-            if (tempCrossing.id == crossingID)
-                return tempCrossing;
-        }
-        return null;
+        return  openListMap.get(crossingID);
     }
 
     private static Crossing getCrossingFromClosedList(int crossingID){
-        for (Crossing tempCrossing : closedList) {
-            if (tempCrossing.id == crossingID)
-                return tempCrossing;
-        }
-        return null;
+        return  closedList.get(crossingID);
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        // .getDomainName(1234);
-        
-        /*int[] links = navData.getLinksForCrossing(startCrossID);
-        int link = links[0];
-        int cross2 = navData.getCrossingIDTo(link);
-
-        int lsinr = navData.getLSIclass(link);
-        LSIClass lc = LSIClassCentre.lsiClassByID(lsinr);
-        
-        System.out.println("Ausgabe:");
-        System.out.println(navData.getCrossingLatE6(startCrossID));
-        System.out.println(navData.getCrossingLongE6(startCrossID));
-        System.out.println(navData.getCrossingLatE6(cross2));
-        System.out.println(navData.getCrossingLongE6(cross2));
-        System.out.println(lc.className);
-        
-        
-        myComparator comp = new myComparator();
-        PriorityQueue<Node> queue = new PriorityQueue(200, comp);
-        
-        Node node1 = new Node(2);
-        Node node2 = new Node(7);
-        Node node3 = new Node(6);
-        Node node4 = new Node(1);*/
-        
-        /*queue.add(node1);
-        queue.add(node2);
-        queue.add(node3);
-        queue.add(node4);
-        
-        Iterator<Node> iter = queue.iterator();
-        boolean found = false;
-        
-        while (iter.hasNext() && !found) {
-            System.out.println("searching...");
-            
-            if (iter.next().dist == 6) {
-                System.out.println("FOUND!");
-                found = true;
-            }
-        }
-        
-        System.out.println("Asugabe:");
-        System.out.println(queue.poll().dist);
-        System.out.println(queue.poll().dist);
-        System.out.println(queue.poll().dist);
-        System.out.println(queue.poll().dist);*/
-
-
-

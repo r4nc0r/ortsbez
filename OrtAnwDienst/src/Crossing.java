@@ -1,29 +1,30 @@
-/**
- * Created by aroldmi61242 on 08.06.2017.
- */
+
+
 public class Crossing {
 
     private static nav.NavData navData;
 
-    private static int counter;
-    private static Boolean test;
+    private static int crossingCounter;
+    private static int totalSeconds;
 
     private int[] outgoingLinksIDs;
     private int[] neighboursIDs;
     private Crossing previousCrossing;
 
     int id;
+//    String idStr;
     double gVal;
 
-    public Crossing(int id, nav.NavData navData){
+    public Crossing(int id, nav.NavData navData, int totalSeconds){
 
-        test = true;
-        counter++;
-        System.out.println("Crossings: " + counter);
+        crossingCounter++;
+        System.out.println("Crossings: " + crossingCounter);
 
         this.navData = navData;
         this.previousCrossing = null;
         this.id = id;
+//        this.idStr = id + "";
+        this.totalSeconds = totalSeconds;
         this.outgoingLinksIDs = navData.getLinksForCrossing(id);
         this.gVal = 0;
         neighboursIDs = new int[outgoingLinksIDs.length];
@@ -34,14 +35,14 @@ public class Crossing {
         }
     }
 
-    public Crossing(int id, Crossing previousCrossing,int time){
+    public Crossing(int id, Crossing previousCrossing){
 
-        counter++;
-        System.out.println("Crossings: " + counter);
+        crossingCounter++;
+        System.out.println("Crossings: " + crossingCounter);
 
-//        this.navData = navData;
         this.previousCrossing = previousCrossing;
         this.id = id;
+//        this.idStr = id + "";
         this.outgoingLinksIDs = navData.getLinksForCrossing(id);
         neighboursIDs = new int[outgoingLinksIDs.length];
 
@@ -49,19 +50,19 @@ public class Crossing {
         {
             neighboursIDs[i] = navData.getCrossingIDTo(outgoingLinksIDs[i]);
         }
-        // System.out.println(outgoingLinksIDs);
-        // System.out.println(neighboursIDs);
 
-        setGValue(time);
+        setGValue();
     }
 
     public boolean updateGValue(Crossing newPreviousCrossing){
         int linkIDPreviousToThis = getLinkIDPreviousToThis(newPreviousCrossing.id);
+
         if (linkIDPreviousToThis ==-1)
         {
             return false;
         }
-        else {
+        else
+        {
             double newGVal = newPreviousCrossing.gVal + getLinkIDDriveTime(linkIDPreviousToThis);
 
             if (newGVal < this.gVal) {
@@ -72,30 +73,26 @@ public class Crossing {
         }
     }
 
-    private void setGValue(int time){
+    private void setGValue(){
         int linkIDPreviousToThis = getLinkIDPreviousToThis(previousCrossing.id);
-        if (linkIDPreviousToThis ==-1)
+        if (linkIDPreviousToThis == -1)
         {
-            this.gVal = time*2;
+            this.gVal = totalSeconds * 2;
         }
         else{
             this.gVal = previousCrossing.gVal + getLinkIDDriveTime(linkIDPreviousToThis);
             System.out.println("gVal: " + this.gVal);
         }
-
     }
 
     private int getLinkIDPreviousToThis(int previousID){
-        // System.out.println("length: " + neighboursIDs.length);
         for(int i = 0; i < neighboursIDs.length; i++){
-
-            // System.out.println("i: " + i);
 
             if (neighboursIDs[i] == previousID){
                 int linkIDPreviousToThis = navData.getReverseLink(outgoingLinksIDs[i]);
 
                 if (navData.goesCounterOneway(linkIDPreviousToThis)){
-                    return -1; // Link is counter oneway
+                    return -1; // Link is crossingCounter oneway
                 }
                 else
                     return linkIDPreviousToThis;
@@ -106,7 +103,6 @@ public class Crossing {
     }
 
     private double getLinkIDDriveTime(int linkID){
-        // System.out.println("test: " + linkID);
         if (linkID == -1)
             return 0;
 
@@ -139,20 +135,8 @@ public class Crossing {
             }
         }
 
-
         double linkMaxSpeedMS = linkMaxSpeedKMH / 3.6;
 
-//        if (test){
-//            System.out.println("Test:");
-//            System.out.println((double) navData.getCrossingLatE6(navData.getCrossingIDFrom(linkID)) / 1000000 + " " + (double) navData.getCrossingLongE6(navData.getCrossingIDFrom(linkID)) / 1000000);
-//            System.out.println((double) navData.getCrossingLatE6(navData.getCrossingIDTo(linkID)) / 1000000 + " " + (double) navData.getCrossingLongE6(navData.getCrossingIDTo(linkID)) / 1000000);
-//            System.out.println(linkLength);
-//            System.out.println(linkMaxSpeedKMH + " " + linkMaxSpeedMS);
-//            System.out.println(linkLength / linkMaxSpeedMS);
-//            test = false;
-//        }
-
-//        return (int) Math.round(linkLength / linkMaxSpeedMS);
         return linkLength / linkMaxSpeedMS;
     }
 
@@ -169,5 +153,16 @@ public class Crossing {
 
     public void setPreviousCrossing(Crossing previousCrossing) {
         this.previousCrossing = previousCrossing;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Crossing crossing = (Crossing) o;
+
+        return id == crossing.id;
     }
 }
