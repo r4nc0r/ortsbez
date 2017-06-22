@@ -18,7 +18,7 @@ public class Crossing {
     public Crossing(int id, nav.NavData navData, int totalSeconds){
 
         crossingCounter++;
-        System.out.println("Crossings: " + crossingCounter);
+       // System.out.println("Crossings: " + crossingCounter);
 
         this.navData = navData;
         this.previousCrossing = null;
@@ -38,7 +38,7 @@ public class Crossing {
     public Crossing(int id, Crossing previousCrossing){
 
         crossingCounter++;
-        System.out.println("Crossings: " + crossingCounter);
+        //System.out.println("Crossings: " + crossingCounter);
 
         this.previousCrossing = previousCrossing;
         this.id = id;
@@ -81,7 +81,7 @@ public class Crossing {
         }
         else{
             this.gVal = previousCrossing.gVal + getLinkIDDriveTime(linkIDPreviousToThis);
-            System.out.println("gVal: " + this.gVal);
+            //System.out.println("gVal: " + this.gVal);
         }
     }
 

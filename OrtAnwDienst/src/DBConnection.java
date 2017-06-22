@@ -7,9 +7,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 
-/**
- * Created by samue on 22.06.2017.
- */
+
 public class DBConnection {
     private static String DBparams;
     private static String SQLStatement;
@@ -24,6 +22,7 @@ public class DBConnection {
         Connection connection = null;
         Statement statement;
         ResultSet resultSet;
+        result = new ArrayList<String>();
         try {
             DBUtil.parseDBparams(this.DBparams);
             connection = DBUtil.getConnection();
@@ -40,6 +39,7 @@ public class DBConnection {
             resultSet = statement.executeQuery(String.format(this.SQLStatement));
             int cnt = 0;
             while (resultSet.next()) {
+
                 result.add(resultSet.getString(1));
                 cnt++;
             }

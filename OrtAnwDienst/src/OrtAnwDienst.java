@@ -1,8 +1,13 @@
+import com.vividsolutions.jts.geom.Coordinate;
+import fu.esi.SQL;
 import fu.util.ConcaveHullGenerator;
 import nav.NavData;
 import pp.dorenda.client2.additional.UniversalPainterWriter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.concurrent.TimeUnit;
 
 
@@ -21,6 +26,7 @@ public class OrtAnwDienst {
     private static int startLat;
     private static int startLon;
     private static int totalSeconds;
+    private static int[] LSI=new int[2];
 
     /**
      * @param args the command line arguments
@@ -31,9 +37,11 @@ public class OrtAnwDienst {
 
         startLat = 49465646;
         startLon = 11154443;
-        totalSeconds = 60*60;
+        totalSeconds = 90*60;
+        LSI[0]=20505600;
+        LSI[1]=20505700;
 
-        navData = new NavData("roth\\Roth_LBS\\CAR_CACHE_de_noCC.CAC", true);
+        navData = new NavData("roth\\Roth_LBS\\CAR_CACHE_mittelfranken_noCC.cac", true);
 
         long startTimeAfterTables = System.nanoTime();
 
@@ -47,7 +55,7 @@ public class OrtAnwDienst {
         initAStarAlgo();
 
         while(!isAStarTerminated){
-            System.out.println("Open List Größe: " + openList.size());
+            //System.out.println("Open List Größe: " + openList.size());
             if (openList.peek().gVal > totalSeconds){
                 isAStarTerminated = true;
             }
@@ -57,7 +65,7 @@ public class OrtAnwDienst {
                 expandCrossing(activeCrossing);
             }
         }
-        DBConnection
+
 
         long durationCACLoadTime = startTimeAfterTables - startTime;
         long durationAStar = System.nanoTime() - startTimeAfterUPW;
@@ -66,23 +74,30 @@ public class OrtAnwDienst {
         System.out.println("\nA-Star Duration:");
         printDurationNano(durationAStar);
 
-        startTime = System.nanoTime();
 
+
+        startTime = System.nanoTime();
+        positions = new ArrayList<double[]>();
         generateConcaveHull(upw);
 
         System.out.println("\nconcaveHull Duration:");
         printDurationNano(System.nanoTime() - startTime);
+
+
+        DBConnection DBCon = new DBConnection("geosrv.informatik.fh-nuernberg.de/5432/dbuser/dbuser/deproDB20","SELECT realname, geodata_point FROM domain WHERE geometry='P' AND lsiclass1 BETWEEN "+LSI[0]+" AND "+LSI[1]+" AND"+ SQL.createIndexQuery(ConcaveHullGenerator.concaveHullJTS(positions,1d), SQL.COMPLETELY_INSIDE));
+        for(String str: DBCon.getDBData())
+        {
+            System.out.println(str);
+        }
+        //+" AND "+SQL.createIndexQuery(ConcaveHullGenerator.concaveHullJTS(positions,1d),SQL.COMPLETELY_INSIDE)
     }
 
     private static void generateConcaveHull(UniversalPainterWriter upw) {
-        positions = new ArrayList<double[]>();
-
         for (Crossing cross: closedList.values()) {
             positions.add(convertToDoubleArray(navData.getCrossingLatE6(cross.id),navData.getCrossingLongE6(cross.id)));
         }
-
-        positions = ConcaveHullGenerator.concaveHull(positions,0.04d);
-        upw.polygon(positions,102,102,102,200);
+        ArrayList<double[]>  hullPositions = ConcaveHullGenerator.concaveHull(positions,0.04d);
+        upw.polygon(hullPositions,102,102,102,200);
         double[] startpos = convertToDoubleArray(startLat,startLon);
         upw.flag(startpos[0],startpos[1],0,0,255,200,"Start");
         upw.close();
@@ -107,6 +122,23 @@ public class OrtAnwDienst {
         array[1]=lon;
         array[1]= array[1]/1000000;
         return array;
+    }
+    private static Coordinate[] generateCoordinateArray(){
+        Coordinate[] coordinates = new Coordinate[closedList.size()+1];
+        int cnt=0;
+        int crossId=0;
+        for (Crossing cross: closedList.values()) {
+            if (cnt==0)
+            {
+                crossId=cross.id;
+            }
+            Coordinate coordinate = new Coordinate(navData.getCrossingLatE6(cross.id)/1000000,navData.getCrossingLongE6(cross.id)/1000000);
+            coordinates[cnt] =coordinate;
+            cnt++;
+        }
+        Coordinate coordinate = new Coordinate(navData.getCrossingLatE6(crossId)/1000000,navData.getCrossingLongE6(crossId)/1000000);
+        coordinates[cnt] =coordinate;
+       return coordinates;
     }
 
     private static void initAStarAlgo(){
