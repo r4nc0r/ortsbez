@@ -5,6 +5,7 @@ import fu.util.DBUtil;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 /**
  * Created by samue on 22.06.2017.
@@ -12,14 +13,14 @@ import java.sql.Statement;
 public class DBConnection {
     private static String DBparams;
     private static String SQLStatement;
-
+    private static ArrayList<String> result;
 
     public DBConnection(String dbparams, String sqlstatement){
         this.DBparams =dbparams;
         this.SQLStatement = sqlstatement;
     }
 
-    public void getDBData() {
+    public ArrayList<String> getDBData() {
         Connection connection = null;
         Statement statement;
         ResultSet resultSet;
@@ -39,7 +40,7 @@ public class DBConnection {
             resultSet = statement.executeQuery(String.format(this.SQLStatement));
             int cnt = 0;
             while (resultSet.next()) {
-
+                result.add(resultSet.getString(1));
                 cnt++;
             }
 
@@ -48,6 +49,7 @@ public class DBConnection {
             e.printStackTrace();
             System.exit(1);
         }
+        return result;
     }
 }
 

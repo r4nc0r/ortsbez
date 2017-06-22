@@ -57,6 +57,7 @@ public class OrtAnwDienst {
                 expandCrossing(activeCrossing);
             }
         }
+        DBConnection
 
         long durationCACLoadTime = startTimeAfterTables - startTime;
         long durationAStar = System.nanoTime() - startTimeAfterUPW;

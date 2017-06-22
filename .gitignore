@@ -22,3 +22,5 @@
 hs_err_pid*
 OrtAnwDienst/roth/Roth_LBS/*.CAC
 OrtAnwDienst/out
+
+OrtAnwDienst/\.idea/
