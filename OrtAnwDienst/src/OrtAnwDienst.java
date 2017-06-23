@@ -25,6 +25,8 @@ public class OrtAnwDienst {
 
     private static ArrayList<double[]> positions;
 
+    private static Geometry concaveHullJTS;
+
     private static int startLat;
     private static int startLon;
     private static int totalSeconds;
@@ -39,7 +41,7 @@ public class OrtAnwDienst {
 
         startLat = 49465646;
         startLon = 11154443;
-        totalSeconds = 5*60;
+        totalSeconds = 25*60;
         LSI[0]=20505600;
         LSI[1]=20505700;
 
@@ -85,51 +87,38 @@ public class OrtAnwDienst {
         System.out.println("\nconcaveHull Duration:");
         printDurationNano(System.nanoTime() - startTime);
 
-        double w=positions.get(1)[1];
-        double n=positions.get(1)[0];
-        double e=positions.get(1)[1];
-        double s=positions.get(1)[0];
-        for (int i =0; i<positions.size();i++)
-        {
-            if (positions.get(i)[1]>e)
-                e=positions.get(i)[1];
-            if (positions.get(i)[0]>n)
-                n=positions.get(i)[0];
-            if (positions.get(i)[1]<w)
-                w=positions.get(i)[1];
-            if (positions.get(i)[0]<s)
-                s=positions.get(i)[0];
-        }
-        GeometryFactory geometryFactory= new GeometryFactory();
-        Geometry geometry = ConcaveHullGenerator.concaveHullJTS(positions,1d);
-        ArrayList<Coordinate> coordinates = new ArrayList<Coordinate>();
-        DBConnection DBCon = new DBConnection("geosrv.informatik.fh-nuernberg.de/5432/dbuser/dbuser/deproDB20","SELECT realname, geodata_point FROM domain WHERE geometry='P' AND lsiclass1 BETWEEN "+LSI[0]+" AND "+LSI[1]+" AND "+SQL.createIndexQuery(w,n,e,s,true));
-        for(Coordinate coord: DBCon.getDBData())
+
+
+        DBConnection DBCon = new DBConnection("geosrv.informatik.fh-nuernberg.de/5432/dbuser/dbuser/deproDB20","SELECT realname, geodata_point FROM domain WHERE geometry='P' AND lsiclass1 BETWEEN "+LSI[0]+" AND "+LSI[1]+" AND "+SQL.createIndexQuery(concaveHullJTS,true));
+
+        System.out.println();
+        for(ResultClass result: DBCon.getDBData())
         {
 
-            Geometry geometry1= geometryFactory.createPoint(coord);
-            if (geometry.within(geometry1))
-            {
-                coordinates.add(coord);
-                System.out.println(coord.x + ""+coord.y);
-            }
+            GeometryFactory geometryFactory = new GeometryFactory();
+            Geometry geometry = geometryFactory.createPoint(result.Coordinate);
+            if (geometry.within(concaveHullJTS))
+            upw.flag(result.Coordinate.y,result.Coordinate.x,0,0,255,200,result.Name);
         }
+        upw.close();
 
+    }
+
+    private static Coordinate switchCoordinateValues(Coordinate coordinate)
+    {
+        return new Coordinate(coordinate.y,coordinate.x);
     }
 
     private static void generateConcaveHull(UniversalPainterWriter upw) {
         for (Crossing cross: closedList.values()) {
-            positions.add(convertToDoubleArray(navData.getCrossingLatE6(cross.id),navData.getCrossingLongE6(cross.id)));
+            positions.add(convertToDoubleArray(navData.getCrossingLongE6(cross.id),navData.getCrossingLatE6(cross.id)));
         }
         //ArrayList<double[]>  hullPositions = ConcaveHullGenerator.concaveHull(positions,0.04d);
         //upw.polygon(hullPositions,102,102,102,200);
-        //Geometry geometry = ConcaveHullGenerator.concaveHullJTS(positions,0.04d);
-        GeometryFactory geometryFactory = new GeometryFactory();
-        Geometry geometry = geometryFactory.createPolygon(generateCoordinateArray());
-        upw.jtsGeometry(geometry,102,102,102,200,1,0,0);
+        concaveHullJTS = ConcaveHullGenerator.concaveHullJTS(positions,0.04d);
+        upw.jtsGeometry(concaveHullJTS,102,102,102,200,1,0,0);
         double[] startpos = convertToDoubleArray(startLat,startLon);
         upw.flag(startpos[0],startpos[1],0,0,255,200,"Start");
-        upw.close();
     }
 
     private static void printDurationNano(long duration) {

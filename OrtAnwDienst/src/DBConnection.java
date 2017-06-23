@@ -15,18 +15,18 @@ import java.util.ArrayList;
 public class DBConnection {
     private static String DBparams;
     private static String SQLStatement;
-    private static ArrayList<Coordinate> result;
+    private static ArrayList<ResultClass> result;
 
     public DBConnection(String dbparams, String sqlstatement){
         this.DBparams =dbparams;
         this.SQLStatement = sqlstatement;
     }
 
-    public ArrayList<Coordinate> getDBData() {
+    public ArrayList<ResultClass> getDBData() {
         Connection connection = null;
         Statement statement;
         ResultSet resultSet;
-        result = new ArrayList<Coordinate>();
+        result = new ArrayList<ResultClass>();
         try {
             DBUtil.parseDBparams(this.DBparams);
             connection = DBUtil.getConnection();
@@ -47,11 +47,12 @@ public class DBConnection {
             }
             int cnt = 0;
             while (resultSet.next()) {
-
+                String name = resultSet.getString(1);
                 byte[] gao_geometry=resultSet.getBytes(2);
                 Geometry geom= SQL.wkb2Geometry(gao_geometry);
                 Coordinate coord=((Point)geom).getCoordinate();
-                result.add(coord);
+                ResultClass re=new ResultClass(coord,name);
+                result.add(re);
                 cnt++;
             }
 
