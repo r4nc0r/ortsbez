@@ -3,8 +3,6 @@
 public class Crossing {
 
     private static nav.NavData navData;
-
-    private static int crossingCounter;
     private static int totalSeconds;
 
     private int[] outgoingLinksIDs;
@@ -12,19 +10,13 @@ public class Crossing {
     private Crossing previousCrossing;
 
     int id;
-//    String idStr;
     double gVal;
 
-    public Crossing(int id, nav.NavData navData, int totalSeconds){
-
-        crossingCounter++;
-       // System.out.println("Crossings: " + crossingCounter);
-
-        this.navData = navData;
+    public Crossing(int id){
+        this.navData = Isochrone.getNavData();
         this.previousCrossing = null;
         this.id = id;
-//        this.idStr = id + "";
-        this.totalSeconds = totalSeconds;
+        this.totalSeconds = Isochrone.getTotalSeconds();
         this.outgoingLinksIDs = navData.getLinksForCrossing(id);
         this.gVal = 0;
         neighboursIDs = new int[outgoingLinksIDs.length];
@@ -36,13 +28,8 @@ public class Crossing {
     }
 
     public Crossing(int id, Crossing previousCrossing){
-
-        crossingCounter++;
-        //System.out.println("Crossings: " + crossingCounter);
-
         this.previousCrossing = previousCrossing;
         this.id = id;
-//        this.idStr = id + "";
         this.outgoingLinksIDs = navData.getLinksForCrossing(id);
         neighboursIDs = new int[outgoingLinksIDs.length];
 
@@ -81,7 +68,6 @@ public class Crossing {
         }
         else{
             this.gVal = previousCrossing.gVal + getLinkIDDriveTime(linkIDPreviousToThis);
-            //System.out.println("gVal: " + this.gVal);
         }
     }
 
@@ -103,9 +89,6 @@ public class Crossing {
     }
 
     private double getLinkIDDriveTime(int linkID){
-        if (linkID == -1)
-            return 0;
-
         int linkLength = navData.getLengthMeters(linkID);
         int linkMaxSpeedKMH = navData.getMaxSpeedKMperHours(linkID);
         int lsi;
@@ -132,7 +115,7 @@ public class Crossing {
             else if(lsi >=34150000 && lsi<=34160000){
                 linkMaxSpeedKMH=5;
             }
-            //if Aufffahrtsstraße Autobahn
+            //if Auffahrtsstraße Autobahn
             else if(lsi >=34170000 && lsi<=34175000){
                 linkMaxSpeedKMH=100;
             }

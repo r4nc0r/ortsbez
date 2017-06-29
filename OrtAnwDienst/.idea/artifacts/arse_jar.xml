@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="arse:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/arse_jar</output-path>
+    <root id="archive" name="arse.jar">
+      <element id="directory" name="arse">
+        <element id="dir-copy" path="$PROJECT_DIR$/src" />
+        <element id="module-output" name="arse" />
+      </element>
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/META-INF/MANIFEST.MF" />
+      </element>
+    </root>
+  </artifact>
+</component>
