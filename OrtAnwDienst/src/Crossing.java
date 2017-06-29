@@ -112,23 +112,34 @@ public class Crossing {
 
         if (linkMaxSpeedKMH == 0) {
             lsi =navData.getLSIclass(linkID);
+            //If Autobahn oder KRAFTFAHRSTRASSE
             if(lsi >=34100000 && lsi<=34120000){
                 linkMaxSpeedKMH=120;
             }
+            //if Landstraße oder Bundesstraße
             else if(lsi >=34130000 && lsi<=34134000){
                 linkMaxSpeedKMH=100;
             }
+            //if Innerorts
             else if(lsi >=34140000 && lsi<=34142000){
                 linkMaxSpeedKMH=50;
             }
+            //if Erschließungsweg
             else if(lsi >=34143000 && lsi<=34143200){
                 linkMaxSpeedKMH=3;
             }
+            //if Waldwege
             else if(lsi >=34150000 && lsi<=34160000){
                 linkMaxSpeedKMH=5;
             }
-            else if(lsi >=34170000 && lsi<=34176000){
-                linkMaxSpeedKMH=50;
+            //if Aufffahrtsstraße Autobahn
+            else if(lsi >=34170000 && lsi<=34175000){
+                linkMaxSpeedKMH=100;
+            }
+            //if Kreisverkehr
+            else if (lsi == 34176000)
+            {
+                linkMaxSpeedKMH=30;
             }
             else {
                 return 0;

@@ -37,7 +37,7 @@ public class OrtAnwDienst {
 
         startLat = 49465646;
         startLon = 11154443;
-        totalSeconds = 120*60;
+        totalSeconds = 20*60;
         int startLSI =20505600;
         int endLSI =20505700;
         navData = new NavData("roth\\Roth_LBS\\CAR_CACHE_de_noCC.CAC", true);
@@ -121,7 +121,7 @@ public class OrtAnwDienst {
 
         //write StartPosition in result.txt
         double[] startpos = convertToDoubleArray(startLat,startLon);
-        upw.flag(startpos[0],startpos[1],0,0,255,200,"Start");
+        upw.flag(startpos[0],startpos[1],255,0,0,200,"Start");
     }
 
     private static double[] convertToDoubleArray(int lat,int lon){
