@@ -1,7 +1,5 @@
 package arse;
 
-import com.vividsolutions.jts.awt.PointShapeFactory;
-import com.vividsolutions.jts.geom.Coordinate;
 import nav.NavData;
 
 import java.util.ArrayList;
@@ -41,19 +39,19 @@ public class DijkstraAlgorithm {
         }
 
         //Fall 1: Start innerhalb, Ende Außerhalb
-        while (openList.peek() !=null)
+       while (openList.peek() !=null)
         {
             Crossing cross = openList.poll();
             int[] neighboursIDs= cross.getNeighboursIDs();
             int cnt=0;
             for (int crossid:neighboursIDs ){
-               Crossing insideCross = getCrossingFromClosedList(crossid);
+                Crossing insideCross = getCrossingFromClosedList(crossid);
                 if(insideCross!= null){
 
-                    int linkId = Isochrone.getNavData().getReverseLink(cross.getOutgoingLinksIDs()[cnt]);
+                    int linkId = cross.getOutgoingLinksIDs()[cnt];
                     if (!Isochrone.getNavData().goesCounterOneway(linkId))
                     {
-                        addLastGeometryPoint(linkId, insideCross.gVal);
+                        checkLinkGeometryPoints(linkId, insideCross.gVal);
                     }
                 }
                 cnt++;
@@ -61,7 +59,7 @@ public class DijkstraAlgorithm {
         }
     }
 
-    private static void addLastGeometryPoint(int linkId, double gval){
+    private static void checkLinkGeometryPoints(int linkId, double gval){
         NavData navData = Isochrone.getNavData();
         int start = navData.getDomainPosNrFrom(linkId);
         int end = navData.getDomainPosNrTo(linkId);
@@ -70,10 +68,17 @@ public class DijkstraAlgorithm {
         int[] domainLongsE6 = navData.getDomainLongsE6(domain);
         ArrayList<double[]> coordinates= new ArrayList<double[]>();
 
-        for(int i = start; i<=end;i++){
-            coordinates.add(ConcaveHullCreation.convertToDoubleArray(domainLongsE6[i],domainLatsE6[i]));
-
+        if (end < start){
+            for(int i = end; i<=start;i++){
+                coordinates.add(ConcaveHullCreation.convertToDoubleArray(domainLongsE6[i],domainLatsE6[i]));
+            }
         }
+        else{
+            for(int i = start; i<=end;i++){
+                coordinates.add(ConcaveHullCreation.convertToDoubleArray(domainLongsE6[i],domainLatsE6[i]));
+            }
+        }
+
         for (int i = 0; i<coordinates.size()-1;i++){
             double distance =distanceBetweenCoordinates(coordinates.get(i)[0],coordinates.get(i)[1],coordinates.get(i+1)[0],coordinates.get(i+1)[1]);
             int speed = Crossing.getSpeedLimit(linkId);
@@ -182,7 +187,7 @@ public class DijkstraAlgorithm {
 
     private static void inspectDomainGeometry(int linkId, double gval){
         if (Isochrone.getNavData().getLengthMeters(linkId) >50){
-            addLastGeometryPoint(linkId,gval);
+            checkLinkGeometryPoints(linkId,gval);
         }
     }
 }

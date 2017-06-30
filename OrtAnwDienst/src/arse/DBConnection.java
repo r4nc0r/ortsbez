@@ -39,9 +39,6 @@ class DBConnection {
             statement = connection.createStatement();
             statement.setFetchSize(1000);
             resultSet = statement.executeQuery(SQLStatement);
-            if (!resultSet.next()){
-                System.out.println();
-            }
 
             while (resultSet.next()) {
                 //get realname from resultSet

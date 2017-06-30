@@ -91,8 +91,9 @@ public class Crossing {
             }
             //if Innerorts
             else if(lsi >=34140000 && lsi<=34141000){
-                return 30;
+                return 50;
             }
+            //if verkehrsberuighter Bereich
             else if( lsi==34142000){
                 return 3;
             }

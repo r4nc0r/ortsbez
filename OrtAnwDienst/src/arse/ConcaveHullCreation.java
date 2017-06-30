@@ -22,7 +22,7 @@ public class ConcaveHullCreation {
         for (Crossing cross: DijkstraAlgorithm.getClosedList().values()) {
             closedPositions.add(convertToDoubleArray(Isochrone.getNavData().getCrossingLongE6(cross.id),Isochrone.getNavData().getCrossingLatE6(cross.id)));
         }
-        double alpha =0.008;
+        double alpha =0.02;
 
 
 
