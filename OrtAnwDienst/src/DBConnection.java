@@ -1,4 +1,3 @@
-
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import fu.esi.SQL;

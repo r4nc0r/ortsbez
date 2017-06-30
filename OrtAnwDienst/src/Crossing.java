@@ -134,22 +134,6 @@ public class Crossing {
         return linkLength / linkMaxSpeedMS;
     }
 
-    public int[] getNeighboursIDs(){
-        return neighboursIDs;
-    }
-
-    public int getPreviousCrossingID(){
-        if (previousCrossing == null)
-            return -1;
-        else
-            return previousCrossing.id;
-    }
-
-    public void setPreviousCrossing(Crossing previousCrossing) {
-        this.previousCrossing = previousCrossing;
-    }
-
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -158,5 +142,16 @@ public class Crossing {
         Crossing crossing = (Crossing) o;
 
         return id == crossing.id;
+    }
+
+    public void setPreviousCrossing(Crossing previousCrossing) {this.previousCrossing = previousCrossing;}
+
+    public int[] getNeighboursIDs(){return neighboursIDs;}
+
+    public int getPreviousCrossingID(){
+        if (previousCrossing == null)
+            return -1;
+        else
+            return previousCrossing.id;
     }
 }

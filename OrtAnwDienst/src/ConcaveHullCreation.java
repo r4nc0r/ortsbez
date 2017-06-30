@@ -3,18 +3,14 @@ import fu.util.ConcaveHullGenerator;
 import pp.dorenda.client2.additional.UniversalPainterWriter;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
-/**
- * Created by samue on 29.06.2017.
- */
+
 public class ConcaveHullCreation {
 
     private static Geometry concaveHullJTS;
 
-    public static Geometry getConcaveHullJTS() {
-        return concaveHullJTS;
-    }
+    public static Geometry getConcaveHullJTS() {return concaveHullJTS;}
+
 
     public static void generateConcaveHull(UniversalPainterWriter upw) {
         ArrayList<double[]> closedPositions = new ArrayList<double[]>();

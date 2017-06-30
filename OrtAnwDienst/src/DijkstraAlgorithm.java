@@ -2,38 +2,31 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
 
-/**
- * Created by samue on 29.06.2017.
- */
+
 public class DijkstraAlgorithm {
 
     private static Map<Integer, Crossing> closedList;
-
     private static PriorityQueue<Crossing> openList;
-
     private static Map<Integer, Crossing> openListMap;
 
-
     public static Map<Integer, Crossing> getClosedList() {return closedList;}
-
-    private static Crossing getCrossingFromOpenList(int crossingID){
-        return  openListMap.get(crossingID);
-    }
-
-    private static Crossing getCrossingFromClosedList(int crossingID){
-        return  closedList.get(crossingID);
-    }
+    private static Crossing getCrossingFromOpenList(int crossingID){return  openListMap.get(crossingID);}
+    private static Crossing getCrossingFromClosedList(int crossingID){return  closedList.get(crossingID);}
 
 
     public static void runAlgorithm(){
+        initDijkstraAlgorithm();
+
         boolean isAStarTerminated = false;
         Crossing activeCrossing;
-        initDijkstraAlgorithm();
+
+        // The main loop of the Dijkstra algorithm
         while(!isAStarTerminated){
             if (openList.peek().gVal > Isochrone.getTotalSeconds()){
                 isAStarTerminated = true;
             }
             else{
+                //Take the next crossing from the open list and expand it
                 activeCrossing = openList.poll();
                 openListMap.remove(activeCrossing.id);
                 expandCrossing(activeCrossing);
@@ -41,9 +34,11 @@ public class DijkstraAlgorithm {
         }
     }
 
+    // Creating the open list, closed list and the start crossing
     private static void initDijkstraAlgorithm(){
         OpenListComp openListComp = new OpenListComp();
 
+        // Initialize the lists
         openList = new PriorityQueue(2000, openListComp);
         openListMap = new HashMap<Integer, Crossing>(2000);
 
@@ -55,6 +50,7 @@ public class DijkstraAlgorithm {
         openListMap.put(startCrossing.id, startCrossing);
     }
 
+    //expanding the actual crossing according to the Dijkstra algorithm
     private static void expandCrossing(Crossing activeCrossing){
         int[] neighboursID = activeCrossing.getNeighboursIDs();
 
@@ -74,6 +70,7 @@ public class DijkstraAlgorithm {
                     }
                 }
                 else{
+                    // if this neighbour crossing is in the closed list, do nothing
                     neighbour = getCrossingFromClosedList(neighbourID);
 
                     if (neighbour == null){
@@ -87,6 +84,7 @@ public class DijkstraAlgorithm {
             }
         }
 
+        //put the crossing in the closed list after its completely expanded
         closedList.put(activeCrossing.id, activeCrossing);
     }
 }

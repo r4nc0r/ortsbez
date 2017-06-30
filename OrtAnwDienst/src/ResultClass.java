@@ -1,8 +1,7 @@
 import com.vividsolutions.jts.geom.Coordinate;
 
-/**
- * Created by samue on 23.06.2017.
- */
+
+//Object created from the DB return data
 public class ResultClass {
     public Coordinate Coordinate;
     public String Name;
