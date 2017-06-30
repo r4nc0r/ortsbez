@@ -1,3 +1,5 @@
+package arse;
+
 import nav.NavData;
 import pp.dorenda.client2.additional.UniversalPainterWriter;
 
@@ -43,7 +45,7 @@ public class Isochrone {
         System.out.println("\nCAC Loading Time:");
         printDurationNano(durationCACLoadTime);
 
-        System.out.println("\nA-Star Duration:");
+        System.out.println("\nDijkstra Duration:");
         printDurationNano(durationAStar);
 
         System.out.println("\nGenerating Concave Hull:");

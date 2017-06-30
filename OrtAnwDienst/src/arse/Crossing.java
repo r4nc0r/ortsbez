@@ -1,9 +1,14 @@
+package arse;
 
+import fu.keys.LSIClass;
+import fu.keys.LSIClassCentre;
 
 public class Crossing {
 
     private static nav.NavData navData;
     private static int totalSeconds;
+
+    public int[] getOutgoingLinksIDs() {return outgoingLinksIDs;}
 
     private int[] outgoingLinksIDs;
     private int[] neighboursIDs;
@@ -71,7 +76,57 @@ public class Crossing {
         }
     }
 
-    private int getLinkIDPreviousToThis(int previousID){
+    public static int getSpeedLimit(int linkId){
+        int linkMaxSpeedKMH = navData.getMaxSpeedKMperHours(linkId);
+
+        if (linkMaxSpeedKMH == 0) {
+            //If Autobahn oder KRAFTFAHRSTRASSE
+            int lsi=navData.getLSIclass(linkId);
+            if(lsi >=34100000 && lsi<=34120000){
+                return 120;
+            }
+            //if Landstraße oder Bundesstraße
+            else if(lsi >=34130000 && lsi<=34134000){
+                return 100;
+            }
+            //if Innerorts
+            else if(lsi >=34140000 && lsi<=34141000){
+                return 30;
+            }
+            else if( lsi==34142000){
+                return 3;
+            }
+            //if Erschließungsweg
+            else if(lsi >=34143000 && lsi<=34143200){
+                return 3;
+            }
+            //if Waldwege
+            else if(lsi >=34150000 && lsi<=34160000){
+                return 5;
+            }
+            //if Auffahrtsstraße Autobahn
+            else if(lsi >=34170000 && lsi<=34175000){
+                return 100;
+            }
+            //if Kreisverkehr
+            else if (lsi == 34176000)
+            {
+                return 30;
+            }
+            else if (lsi ==32711000)
+            {
+                return 30;
+            }
+            else {
+                return 0;
+            }
+        }
+
+       return linkMaxSpeedKMH;
+    }
+
+
+     private int getLinkIDPreviousToThis(int previousID){
         for(int i = 0; i < neighboursIDs.length; i++){
 
             if (neighboursIDs[i] == previousID){
@@ -90,44 +145,7 @@ public class Crossing {
 
     private double getLinkIDDriveTime(int linkID){
         int linkLength = navData.getLengthMeters(linkID);
-        int linkMaxSpeedKMH = navData.getMaxSpeedKMperHours(linkID);
-        int lsi;
-
-        if (linkMaxSpeedKMH == 0) {
-            lsi =navData.getLSIclass(linkID);
-            //If Autobahn oder KRAFTFAHRSTRASSE
-            if(lsi >=34100000 && lsi<=34120000){
-                linkMaxSpeedKMH=120;
-            }
-            //if Landstraße oder Bundesstraße
-            else if(lsi >=34130000 && lsi<=34134000){
-                linkMaxSpeedKMH=100;
-            }
-            //if Innerorts
-            else if(lsi >=34140000 && lsi<=34142000){
-                linkMaxSpeedKMH=50;
-            }
-            //if Erschließungsweg
-            else if(lsi >=34143000 && lsi<=34143200){
-                linkMaxSpeedKMH=3;
-            }
-            //if Waldwege
-            else if(lsi >=34150000 && lsi<=34160000){
-                linkMaxSpeedKMH=5;
-            }
-            //if Auffahrtsstraße Autobahn
-            else if(lsi >=34170000 && lsi<=34175000){
-                linkMaxSpeedKMH=100;
-            }
-            //if Kreisverkehr
-            else if (lsi == 34176000)
-            {
-                linkMaxSpeedKMH=30;
-            }
-            else {
-                return 0;
-            }
-        }
+        int linkMaxSpeedKMH = getSpeedLimit(linkID);
 
         double linkMaxSpeedMS = linkMaxSpeedKMH / 3.6;
 
