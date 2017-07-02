@@ -50,16 +50,9 @@ public class Isochrone {
 
         System.out.println("\nGenerating Concave Hull:");
         startTime = System.nanoTime();
+       
         ConcaveHullCreation.generateConcaveHull(upw);
-        try {
-
-        }catch (Exception e){
-            upw.close();
-            System.out.println("Skipping DB-Query because there is no Polygon");
-            return;
-        }
-
-
+       
         System.out.println("\nConcave Hull Duration:");
         printDurationNano(System.nanoTime() - startTime);
 
