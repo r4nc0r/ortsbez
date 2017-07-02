@@ -1,11 +1,12 @@
 package arse;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import fu.geo.Spherical;
+import fu.geo.SphericalJTS;
 import nav.NavData;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.PriorityQueue;
+import java.util.*;
 
 
 public class DijkstraAlgorithm {
@@ -27,7 +28,7 @@ public class DijkstraAlgorithm {
 
         // The main loop of the Dijkstra algorithm
         while(!isAStarTerminated){
-            if (openList.peek().gVal > Isochrone.getTotalSeconds()){
+            if (openList.isEmpty() || openList.peek().gVal > Isochrone.getTotalSeconds()){
                 isAStarTerminated = true;
             }
             else{
@@ -39,7 +40,7 @@ public class DijkstraAlgorithm {
         }
 
         //Fall 1: Start innerhalb, Ende Außerhalb
-       while (openList.peek() !=null)
+        while (openList.peek() !=null)
         {
             Crossing cross = openList.poll();
             int[] neighboursIDs= cross.getNeighboursIDs();
@@ -67,57 +68,53 @@ public class DijkstraAlgorithm {
         int[] domainLatsE6= navData.getDomainLatsE6(domain);
         int[] domainLongsE6 = navData.getDomainLongsE6(domain);
         ArrayList<double[]> coordinates= new ArrayList<double[]>();
+        for (int lat:domainLatsE6) {
+        if (lat == 48270884){
+            System.out.println("");
+        }
+        }
 
         if (end < start){
             for(int i = end; i<=start;i++){
                 coordinates.add(ConcaveHullCreation.convertToDoubleArray(domainLongsE6[i],domainLatsE6[i]));
             }
+
         }
         else{
             for(int i = start; i<=end;i++){
                 coordinates.add(ConcaveHullCreation.convertToDoubleArray(domainLongsE6[i],domainLatsE6[i]));
             }
+            Collections.reverse(coordinates);
         }
 
+        GeometryFactory geometryFactory = new GeometryFactory();
         for (int i = 0; i<coordinates.size()-1;i++){
-            double distance =distanceBetweenCoordinates(coordinates.get(i)[0],coordinates.get(i)[1],coordinates.get(i+1)[0],coordinates.get(i+1)[1]);
+            Coordinate coordinate = new Coordinate(coordinates.get(i)[0],coordinates.get(i)[1]);
+            Coordinate newcoordinate = new Coordinate(coordinates.get(i+1)[0],coordinates.get(i+1)[1]);
+
+            double distance=SphericalJTS.metersBetween(geometryFactory.createPoint(coordinate),geometryFactory.createPoint(newcoordinate));
+
+
             int speed = Crossing.getSpeedLimit(linkId);
 
             double linkMaxSpeedMS = speed / 3.6;
             double newgval = distance/linkMaxSpeedMS;
-            if (gval+newgval<Isochrone.getTotalSeconds()) {
-                if (coordinates.get(i+1)[1] ==49.492040 )
-                {
-                    System.out.println("");
-                }
-                ConcaveHullCreation.closedPositions.add(coordinates.get(i+1));
-                gval= gval +newgval;
+            if (gval+newgval>Isochrone.getTotalSeconds()) {
+                   return;
             }
 
+            ConcaveHullCreation.closedPositions.add(coordinates.get(i+1));
+            gval= gval +newgval;
         }
 
-
     }
 
-    private static double distanceBetweenCoordinates(double lat1, double lng1, double lat2, double lng2) {
-        double earthRadius = 6371000;
-        double dLat = Math.toRadians(lat2-lat1);
-        double dLng = Math.toRadians(lng2-lng1);
-        double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-                        Math.sin(dLng/2) * Math.sin(dLng/2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-        return (double) (float) (earthRadius * c);
-    }
-
-
-    // Creating the open list, closed list and the start crossing
+       // Creating the open list, closed list and the start crossing
     private static void initDijkstraAlgorithm(){
         OpenListComp openListComp = new OpenListComp();
 
         // Initialize the lists
-        openList = new PriorityQueue(2000, openListComp);
+        openList = new PriorityQueue<Crossing>(2000, openListComp);
         openListMap = new HashMap<Integer, Crossing>(2000);
 
         closedList = new HashMap<Integer, Crossing>(300000);

@@ -14,14 +14,14 @@ public class Crossing {
     private int[] neighboursIDs;
     private Crossing previousCrossing;
 
-    int id;
-    double gVal;
+    public int id;
+    public double gVal;
 
     public Crossing(int id){
-        this.navData = Isochrone.getNavData();
+        navData = Isochrone.getNavData();
         this.previousCrossing = null;
         this.id = id;
-        this.totalSeconds = Isochrone.getTotalSeconds();
+        totalSeconds = Isochrone.getTotalSeconds();
         this.outgoingLinksIDs = navData.getLinksForCrossing(id);
         this.gVal = 0;
         neighboursIDs = new int[outgoingLinksIDs.length];
@@ -85,10 +85,16 @@ public class Crossing {
             if(lsi >=34100000 && lsi<=34120000){
                 return 120;
             }
-            //if Landstraße oder Bundesstraße
-            else if(lsi >=34130000 && lsi<=34134000){
+            //Bundesstraße
+            else if(lsi==34131000){
                 return 100;
             }
+            //Landstraße (sekundär)
+            else if (lsi == 34132000){ return 80;}
+            //Landstraße (tertiär)
+            else if (lsi == 34133000){ return 70;}
+            //Landstraße (unklassifiziert)
+            else if (lsi == 34130000 || lsi == 34134000){ return 80; }
             //if Innerorts
             else if(lsi >=34140000 && lsi<=34141000){
                 return 50;
@@ -103,7 +109,7 @@ public class Crossing {
             }
             //if Waldwege
             else if(lsi >=34150000 && lsi<=34160000){
-                return 5;
+                return 20;
             }
             //if Auffahrtsstraße Autobahn
             else if(lsi >=34170000 && lsi<=34175000){
@@ -114,6 +120,7 @@ public class Crossing {
             {
                 return 30;
             }
+            //Baustelle
             else if (lsi ==32711000)
             {
                 return 30;

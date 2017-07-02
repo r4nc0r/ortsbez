@@ -1,6 +1,9 @@
 package arse;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
 import fu.util.ConcaveHullGenerator;
 import pp.dorenda.client2.additional.UniversalPainterWriter;
 
@@ -15,7 +18,7 @@ public class ConcaveHullCreation {
 
     public static ArrayList<double[]> closedPositions = new ArrayList<double[]>();
 
-    public static void generateConcaveHull(UniversalPainterWriter upw) {
+    public static void generateConcaveHull(UniversalPainterWriter upw) throws Exception {
 
 
         //Get coordinates for each crossing in closed list
@@ -24,9 +27,10 @@ public class ConcaveHullCreation {
         }
         double alpha =0.02;
 
-
-
         //create ConcaveHull
+        if (closedPositions.size()==1) {
+           closedPositions.add(new double[]{closedPositions.get(0)[0]+00.000001,closedPositions.get(0)[1]+00.000001});
+        }
         concaveHullJTS = ConcaveHullGenerator.concaveHullJTS(closedPositions,alpha);
 
         //write ConcaveHull to result.txt
