@@ -68,12 +68,7 @@ public class DijkstraAlgorithm {
         int[] domainLatsE6= navData.getDomainLatsE6(domain);
         int[] domainLongsE6 = navData.getDomainLongsE6(domain);
         ArrayList<double[]> coordinates= new ArrayList<double[]>();
-        for (int lat:domainLatsE6) {
-        if (lat == 48270884){
-            System.out.println("");
-        }
-        }
-
+       
         if (end < start){
             for(int i = end; i<=start;i++){
                 coordinates.add(ConcaveHullCreation.convertToDoubleArray(domainLongsE6[i],domainLatsE6[i]));
