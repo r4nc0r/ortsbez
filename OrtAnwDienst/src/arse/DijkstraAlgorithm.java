@@ -43,16 +43,18 @@ public class DijkstraAlgorithm {
         while (openList.peek() !=null)
         {
             Crossing cross = openList.poll();
+            int crosslat= Isochrone.getNavData().getCrossingLatE6(cross.id);
+            int crosslon= Isochrone.getNavData().getCrossingLongE6(cross.id);
             int[] neighboursIDs= cross.getNeighboursIDs();
             int cnt=0;
             for (int crossid:neighboursIDs ){
                 Crossing insideCross = getCrossingFromClosedList(crossid);
                 if(insideCross!= null){
 
-                    int linkId = cross.getOutgoingLinksIDs()[cnt];
+                    int linkId = Isochrone.getNavData().getReverseLink(cross.getOutgoingLinksIDs()[cnt]);
                     if (!Isochrone.getNavData().goesCounterOneway(linkId))
                     {
-                        checkLinkGeometryPoints(linkId, insideCross.gVal);
+                        checkLinkGeometryPoints(cross.getOutgoingLinksIDs()[cnt], insideCross.gVal);
                     }
                 }
                 cnt++;
